@@ -43,7 +43,7 @@ def create_node_descriptor(end_point):
 	[
 		{'link': 'matlab_api/'+end_point,
          'type': 'STREAM',
-		 'required': 'false'}
+		 'required': False}
 	]
     }
 

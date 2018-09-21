@@ -188,7 +188,7 @@ def main():
 
         # Sleep for whatever time is left at the end of the loop
         time_now = time.time()
-        print(time.time() - start_time)
+        #print(time.time() - start_time)
         time.sleep(max(0, update_rate - (time.time() - start_time)))
         start_time = time.time()
 

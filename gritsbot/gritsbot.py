@@ -184,6 +184,7 @@ def main():
 
         if((time.time() - print_time) >= 1):
             print(status_data)
+            print(motor_message)
             print_time = time.time()
 
         # Sleep for whatever time is left at the end of the loop

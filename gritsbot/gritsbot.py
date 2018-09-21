@@ -1,19 +1,18 @@
 import serial
 import json
-import vizier.mqttinterface as mi
 import vizier.node as node
 import concurrent.futures as futures
-import queue
 import time
 import argparse
 from uuid import getnode
 
-
+# TODO get rid of global variables
+global s
 s = serial.Serial('/dev/ttyACM0', 115200)
 status_data = {}
 motor_message = {'v': 0, 'w': 0}
 motor_message_time = time.time()
-#m = mi.MQTTInterface(host='192.168.1.12', port=1884)
+# m = mi.MQTTInterface(host='192.168.1.12', port=1884)
 e = futures.ThreadPoolExecutor()
 
 # Proposed request packet structure
@@ -25,20 +24,22 @@ request = {'method': 'write', 'body': {'type': 'led', 'left_led': [255, 0, 0], '
 # Proposed response packet structure
 response = {'status': 1, 'body': {'bat_volt': 4.3}}
 
+
 def get_mac():
     hex_mac = hex(getnode())[2:].zfill(12)
     return ':'.join(x + y for x, y in zip(hex_mac[::2], hex_mac[1::2]))
+
 
 def create_node_descriptor(end_point):
 
     node_descriptor = \
     {
         'end_point': end_point,
-	'links': 
+	    'links':
 	{
 		'/status': {'type': 'DATA'}
 	},
-	'requests': 
+	'requests':
 	[
 		{'link': 'matlab_api/'+end_point,
                  'type': 'STREAM',
@@ -58,18 +59,18 @@ def bytes_to_json(message):
     return json.loads(message.decode('ASCII'))
 
 def node_velocities_cb(data):
-    print('got motor data: ', data)
+    # print('got motor data: ', data)
     global motor_message
     global motor_message_time
     motor_message = json.loads(data.decode(encoding='UTF-8'))
     motor_message_time = time.time()
-    
+
 def serial_request(method, body, timeout=1):
     """Makes a request on the serial line
 
     Args:
         method (str): Method for the request (read or write)
-        body (dict): Body of the message 
+        body (dict): Body of the message
         timeout (double): timeout for serial read
 
     Returns:
@@ -100,7 +101,7 @@ def serial_request(method, body, timeout=1):
         #print('Got result: {}'.format(result))
         return result['body']
     else:
-        print('Serial read error for type ({})'.format(message_type))
+        print('Serial read error for type ({})'.format(body))
 
 def serial_write_request(message_type, body={}):
     body['type'] = message_type
@@ -108,10 +109,10 @@ def serial_write_request(message_type, body={}):
 
 def serial_read_request(message_type, body={}):
     body['type'] = message_type
-    return serial_request('read', body) 
+    return serial_request('read', body)
 
 def read_battery_voltage():
-    return serial_read_request('batt_volt') 
+    return serial_read_request('batt_volt')
 
 def read_charging_status():
     return serial_read_request('charge_status')
@@ -152,7 +153,7 @@ def main():
     node_descriptor = create_node_descriptor(mac_list[mac_address])
     status_link = robot_id + '/status'
     input_link = 'matlab_api/' + robot_id
-    
+
     # Initialize and start the robot's node
     robot_node = node.Node(args.host, args.port, node_descriptor)
     robot_node.start()
@@ -181,12 +182,10 @@ def main():
             write_motor(motor_message['v'], motor_message['w'])
 
 
-        #print(status_data)
 
         # Sleep for whatever time is left at the end of the loop
         time_now = time.time()
         print(time.time() - start_time)
-        #print(max(0, update_rate - (time.time() - start_time)))
         time.sleep(max(0, update_rate - (time.time() - start_time)))
         start_time = time.time()
 

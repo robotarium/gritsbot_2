@@ -166,6 +166,7 @@ def main():
 
     start = 0
     start_time = time.time()
+    print_time = time.time()
 
 
     write_left_led([255, 0, 0])
@@ -181,7 +182,9 @@ def main():
         if((time.time() - motor_message_time) <= 0.1):
             write_motor(motor_message['v'], motor_message['w'])
 
-
+        if((time.time() - print_time) >= 1):
+            print(status_data)
+            print_time = time.time()
 
         # Sleep for whatever time is left at the end of the loop
         time_now = time.time()

@@ -8,7 +8,6 @@ import time
 import argparse
 from uuid import getnode
 
-
 s = serial.Serial('/dev/ttyACM0', 115200)
 status_data = {}
 motor_message = {'v': 0, 'w': 0}
@@ -34,11 +33,11 @@ def create_node_descriptor(end_point):
     node_descriptor = \
     {
         'end_point': end_point,
-	'links': 
+	'links':
 	{
 		'/status': {'type': 'DATA'}
 	},
-	'requests': 
+	'requests':
 	[
 		{'link': 'matlab_api/'+end_point,
                  'type': 'STREAM',
@@ -63,13 +62,13 @@ def node_velocities_cb(data):
     global motor_message_time
     motor_message = json.loads(data.decode(encoding='UTF-8'))
     motor_message_time = time.time()
-    
+
 def serial_request(method, body, timeout=1):
     """Makes a request on the serial line
 
     Args:
         method (str): Method for the request (read or write)
-        body (dict): Body of the message 
+        body (dict): Body of the message
         timeout (double): timeout for serial read
 
     Returns:
@@ -108,10 +107,10 @@ def serial_write_request(message_type, body={}):
 
 def serial_read_request(message_type, body={}):
     body['type'] = message_type
-    return serial_request('read', body) 
+    return serial_request('read', body)
 
 def read_battery_voltage():
-    return serial_read_request('batt_volt') 
+    return serial_read_request('batt_volt')
 
 def read_charging_status():
     return serial_read_request('charge_status')
@@ -152,7 +151,7 @@ def main():
     node_descriptor = create_node_descriptor(mac_list[mac_address])
     status_link = robot_id + '/status'
     input_link = 'matlab_api/' + robot_id
-    
+
     # Initialize and start the robot's node
     robot_node = node.Node(args.host, args.port, node_descriptor)
     robot_node.start()

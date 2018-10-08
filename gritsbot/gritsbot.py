@@ -22,6 +22,7 @@ def get_mac():
 
     Returns:
         A MAC address for the robot.
+
     """
     hex_mac = hex(getnode())[2:].zfill(12)
     return ':'.join(x + y for x, y in zip(hex_mac[::2], hex_mac[1::2]))
@@ -37,6 +38,7 @@ def create_node_descriptor(end_point):
 
     Returns:
         A node descriptor of the vizier format for the robot.
+
     """
 
     node_descriptor = \
@@ -45,7 +47,6 @@ def create_node_descriptor(end_point):
             'links':
             {
                 '/status': {'type': 'DATA'},
-                '/server_alive': {'type': 'STREAM'}
             },
             'requests':
             [
@@ -54,53 +55,73 @@ def create_node_descriptor(end_point):
                     'type': 'STREAM',
                     'required': False
                 },
-                {
-                    'link': end_point+'/server_alive',
-                    'type': 'STREAM',
-                    'required': True
-                }
             ]
         }
 
     return node_descriptor
 
+# Proposed request packet structure
+# Read battery voltage
+# request = {'request': 'read', 'iface': 'batt_volt'}
 
-class Gritsbot:
+# Read charge status
+# request = {'request': 'read', 'iface': 'charge_status'}
 
-    def __init__(self, node_descriptor, serial_dev='/dev/ttyACM0', baud_rate=115200, host='192.168.1.7', port=1884):
-        self.serial_dev = serial_dev
-        self.baud_rate = baud_rate
-        self.host = host
-        self.port = port
-        self.node_descriptor = node_descriptor
+# Write motor velocities
+# request = {'request': 'write', 'iface': 'motor', 'body': {'v': 0, 'w': 0}}
 
-        # Attributes set and removed by relevant start/stop methods
-        self.robot_node = None
-        self.serial = None
+# Write left led
+# request = {'request': 'write', 'iface': 'left_led', 'body': {'rgb': [255, 0, 0]}}
 
-    def start_robot_node(self):
-        self.robot_node = node.Node(self.host, self.port, self.node_descriptor)
-        self.robot_node.start()
+# Write right led
+# request = {'request': 'write', 'iface': 'right_led', 'body': {'rgb': [255, 0, 0]}}
 
-    def stop_robot_node(self):
-        self.robot_node.stop()
-        self.robot_node = None
+# Responses
+# Battery voltage response
+# response = {'status': 1, 'body': {'bat_volt': 4.3}}
 
-    def start_serial(self):
-        self.serial = gritsbotserial.GritsbotSerial(self.serial_dev, self.baud_rate)
-        self.serial.start()
 
-    def stop_serial(self):
-        self.serial.stop()
-        self.robot_node = None
+class Request:
 
-    def start(self):
-        self.start_robot_node()
-        self.start_serial()
+    def __init__(self, iface=[], request=[], body={}):
+        self.iface = []
+        self.request = []
+        self.body = []
 
-    def stop(self):
-        self.stop_serial()
-        self.stop_robot_node()
+    def add_write_request(self, iface, body):
+        self.iface.append(iface)
+        self.request.append('write')
+        self.body.append(body)
+
+        return self
+
+    def add_read_request(self, iface):
+        self.iface.append(iface)
+        self.request.append('read')
+        self.body.append({})
+
+        return self
+
+    def to_json_encodable(self):
+        req = {'request': self.request, 'iface': self.iface}
+
+        if(self.body):
+            req['body'] = self.body
+
+        return req
+
+
+def handle_write_response(status, body):
+    return {}
+
+
+def handle_read_response(iface, status, body):
+
+    if(iface in body):
+        return {iface: body[iface]}
+    else:
+        logger.critical('Request for ({0}) not in body ({1}) after request.'.format(iface, body))
+        return {}
 
 
 def main():
@@ -120,6 +141,7 @@ def main():
     update_rate = args.update_rate
     status_update_rate = args.status_update_rate
 
+    # Retrieve the MAC list file, containing a mapping from MAC address to robot ID
     try:
         f = open(args.mac_list, 'r')
         mac_list = json.load(f)
@@ -131,7 +153,7 @@ def main():
         robot_id = mac_list[mac_address]
     else:
         print('MAC address {} not in supplied MAC list file'.format(mac_address))
-        return -1
+        raise ValueError()
 
     logger.info('This is robot: ({0}) with MAC address: ({1})'.format(robot_id, mac_address))
 
@@ -139,121 +161,139 @@ def main():
     node_descriptor = create_node_descriptor(mac_list[mac_address])
     status_link = robot_id + '/status'
     input_link = 'matlab_api/' + robot_id
-    server_alive_link = robot_id+'/server_alive'
 
-    robot = Gritsbot(node_descriptor, serial_dev='/dev/ttyACM0', baud_rate=115200,
-                     host=args.host, port=args.port)
-
-    # Sit here until we get a valid connection to the robot's required interfaces
     started = False
-    while not started:
+    robot_node = None
+    while (not started):
+        robot_node = node.Node(args.host, args.port, node_descriptor)
         try:
-            robot.start()
+            robot_node.start()
             started = True
         except Exception as e:
-            logger.critical('Could not start robot.')
+            logger.critical('Could not start robot node.')
             logger.critical(repr(e))
+            robot_node.stop()
 
+        # Don't try to make nodes too quickly
         time.sleep(1)
 
+    logger.info('Started robot node.')
+
+    started = False
+    serial = None
+    while (not started):
+        serial = gritsbotserial.GritsbotSerial(serial_dev='/dev/ttyACM0', baud_rate=500000)
+        try:
+            serial.start()
+            started = True
+        except Exception as e:
+            # This class stops itself if the device cannot be initially acquired, so we don't need to stop it.
+            logger.critical('Could not acquire serial device.')
+            logger.critical(repr(e))
+
+        # Don't try to acquire the serial device too quickly
+        time.sleep(1)
+
+    logger.info('Acquired serial device.')
+
     # Queues for STREAM links
-    motor_commands = robot.robot_node.subscribe(input_link)
-    heartbeats = robot.robot_node.subscribe(server_alive_link)
+    inputs = robot_node.subscribe(input_link)
 
     # Initialize times for various activities
     start_time = time.time()
     print_time = time.time()
     status_update_time = time.time()
-    heartbeat_time = time.time()
 
     # Initialize data
-    battery_data = robot.serial.read_battery_voltage()
-    charging_data = robot.serial.read_charging_status()
-    status_data = {'batt_volt': -1, 'charge_status': True}
-    last_motor_message = {}
+    status_data = {'batt_volt': -1, 'charge_status': False}
+    last_input_msg = {}
 
     # Main loop for the robot
     while True:
-
         start_time = time.time()
 
-        # Check if MQTT server is alive and well
-        if((start_time - heartbeat_time) >= status_update_rate):
-            # Publish arbitrary message on self loop
-            robot.robot_node.publish(server_alive_link, ''.encode(encoding='UTF-8'))
-            heartbeat = None
-            try:
-                heartbeat = heartbeats.get(timeout=1)
-            except queue.Empty:
-                logger.critical('Could not heartbeat server.  Restarting node.')
-
-            # Error handling.  Restart robot node and resubscribe to relevant topics
-            if(heartbeat is None):
-                try:
-                    robot.stop_robot_node()
-                    robot.start_robot_node()
-                    motor_commands = robot.robot_node.subscribe(input_link)
-                    heartbeats = robot.robot_node.subscribe(server_alive_link)
-                except Exception as e:
-                    logger.critical('Could not reconnect to vizier network')
-                    logger.critical(repr(e))
-
-            heartbeat_time = start_time
+        # Serial requests
+        request = Request()
+        handlers = []
 
         # Retrieve status data: battery voltage and charging status
         if((start_time - status_update_time) >= status_update_rate):
-            try:
-                battery_data = robot.serial.read_battery_voltage()
-                charging_data = robot.serial.read_charging_status()
-                status_data.update(battery_data)
-                status_data.update(charging_data)
-                robot.robot_node.put(status_link, status_data)
-            except gritsbotserial.ReadWriteError:
-                pass
-            except gritsbotserial.ByteOverflow:
-                robot.serial.flush_serial()
+            request.add_read_request('batt_volt').add_read_request('charge_status')
+            handlers.append(lambda status, body: handle_read_response('batt_volt', status, body))
+            handlers.append(lambda status, body: handle_read_response('charge_status', status, body))
 
-            status_update_time = time.time()
+            status_update_time = start_time
 
-        # Process motor commands
-        motor_message = None
-        # Make sure that our queue isn't enormous
-        if(motor_commands.qsize() > MAX_QUEUE_SIZE):
-            logger.critical('Queue of motor messages is too large')
+        # Process input commands
+        input_msg = None
+        # Make sure that the queue has few enough messages
+        if(inputs.qsize() > MAX_QUEUE_SIZE):
+            logger.critical('Queue of motor messages is too large.')
 
         try:
             # Clear out the queue
             while True:
-                motor_message = motor_commands.get_nowait()
+                input_msg = inputs.get_nowait()
         except queue.Empty:
             pass
 
-        if(motor_message is not None):
+        if(input_msg is not None):
             try:
-                motor_message = json.loads(motor_message.decode(encoding='UTF-8'))
+                input_msg = json.loads(input_msg.decode(encoding='UTF-8'))
             except Exception as e:
-                logger.warning('Got malformed JSON motor message')
-                logger.warning(repr(e))
+                logger.warning('Got malformed JSON motor message ({})'.format(input_msg))
+                logger.warning(e)
                 # Set this to None for the next checks
-                motor_message = None
+                input_msg = None
 
-        if(motor_message is not None):
-            if('v' in motor_message and 'w' in motor_message):
-                last_motor_message = motor_message
-                try:
-                    robot.serial.write_motor_velocities(motor_message['v'], motor_message['w'])
-                except gritsbotserial.ReadWriteError:
-                    pass
-                except gritsbotserial.ByteOverflow:
-                    robot.serial.flush_serial()
-            else:
-                logger.warning('Got motor message ({}) with incorrect keys.'.format(motor_message))
+        # If we got a valid JSON input msg, look for appropriate commands
+        if(input_msg is not None):
+            last_input_msg = input_msg
+            if('v' in input_msg and 'w' in input_msg):
+                # Handle response?
+                request.add_write_request('motor', {'v': input_msg['v'], 'w': input_msg['w']})
+                handlers.append(handle_write_response)
+
+            if('left_led' in input_msg):
+                request.add_write_request('left_led', {'rgb': input_msg['left_led']})
+                handlers.append(handle_write_response)
+
+            if('right_led' in input_msg):
+                request.add_write_request('right_led', {'rgb': input_msg['right_led']})
+                handlers.append(handle_write_response)
+
+        # Write to serial port
+        response = None
+        if(len(handlers) > 0):
+            try:
+                response = serial.serial_request(request.to_json_encodable())
+            except Exception as e:
+                logger.critical('Serial exception.')
+                logger.critical(e)
+
+        # Call handlers
+        # We'll have a status and body for each request
+        if(response is not None and 'status' in response and 'body' in response
+           and len(response['status']) == len(handlers) and len(response['body']) == len(handlers)):
+            status = response['status']
+            body = response['body']
+            # Ensure the appropriate handler gets each response
+            for i, handler in enumerate(handlers):
+                status_data.update(handler(status[i], body[i]))
+        else:
+            # If we should have responses, but we don't
+            if(len(handlers) > 0):
+                logger.critical('Malformed response ({})'.format(response))
+
+        robot_node.put(status_link, status_data)
 
         # Print out status data
         if((start_time - print_time) >= status_update_rate):
             logger.info('Status data ({})'.format(status_data))
-            logger.info('Last motor message received ({})'.format(last_motor_message))
+            logger.info('Last input message received ({})'.format(last_input_msg))
             print_time = time.time()
+
+        logger.info(time.time() - start_time)
 
         # Sleep for whatever time is left at the end of the loop
         time.sleep(max(0, update_rate - (time.time() - start_time)))

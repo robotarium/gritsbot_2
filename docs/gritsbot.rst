@@ -20,15 +20,6 @@ gritsbot\.gritsbotserial module
     :undoc-members:
     :show-inheritance:
 
-gritsbot\.serial\_test module
------------------------------
-
-.. automodule:: gritsbot.serial_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
 Module contents
 ---------------
 

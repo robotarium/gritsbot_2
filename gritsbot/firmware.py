@@ -6,6 +6,7 @@ import argparse
 from uuid import getnode
 import logging
 import queue
+import netifaces
 
 # Set up logging
 global logger
@@ -28,8 +29,12 @@ def get_mac():
         AA:BB:CC:DD:EE:FF
 
     """
-    hex_mac = hex(getnode())[2:].zfill(12)
-    return ':'.join(x + y for x, y in zip(hex_mac[::2], hex_mac[1::2]))
+
+    interface = [x for x in netifaces.interfaces() if 'wlan' in x][0]
+    return netifaces.ifaddresses(interface)[netifaces.AF_LINK][0]['addr']
+
+    #hex_mac = hex(getnode())[2:].zfill(12)
+    #return ':'.join(x + y for x, y in zip(hex_mac[::2], hex_mac[1::2]))
 
 
 def create_node_descriptor(end_point):

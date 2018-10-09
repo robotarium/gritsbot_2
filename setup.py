@@ -14,7 +14,7 @@ AUTHOR = 'Paul Glotfelter'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'pyserial'
+    'pyserial',
     'netifaces'
 ]
 

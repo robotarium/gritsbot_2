@@ -222,13 +222,14 @@ class GritsbotSerial:
             self._stopped = True
             self._serial_cv.notify_all()
 
-            self._serial_task_thread.join()
-
             # If the serial connection was never started, don't shut it down
             if(self._started):
                 if(self._serial is not None):
                     self._serial.close()
                     self._serial = None
+
+        # Thread won't finish until lock can be acquired, so we need to put this outside the lock
+        self._serial_task_thread.join()
 
     def _serial_task(self):
         """Restarts the serial if the serial device stops responding.

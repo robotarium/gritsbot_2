@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# gritsbot_x documentation build configuration file, created by
-# sphinx-quickstart on Mon Oct  8 13:56:26 2018.
+# gritsbotx documentation build configuration file, created by
+# sphinx-quickstart on Tue Oct  9 12:54:22 2018.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -33,13 +33,10 @@
 # ones.
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.doctest',
+    'sphinx.ext.todo',
     'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
-    'sphinx.ext.napoleon']
-
-autodoc_default_flags = ['members']
-autosummary_generate = True
+    'sphinx.ext.napoleon',
+    'sphinx.ext.githubpages']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -54,7 +51,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'gritsbot_x'
+project = 'gritsbotx'
 copyright = '2018, Paul Glotfelter'
 author = 'Paul Glotfelter'
 
@@ -83,7 +80,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = False
+todo_include_todos = True
 
 
 # -- Options for HTML output ----------------------------------------------
@@ -108,7 +105,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'gritsbot_xdoc'
+htmlhelp_basename = 'gritsbotxdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -135,7 +132,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'gritsbot_x.tex', 'gritsbot\\_x Documentation',
+    (master_doc, 'gritsbotx.tex', 'gritsbotx Documentation',
      'Paul Glotfelter', 'manual'),
 ]
 
@@ -145,7 +142,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'gritsbot_x', 'gritsbot_x Documentation',
+    (master_doc, 'gritsbotx', 'gritsbotx Documentation',
      [author], 1)
 ]
 
@@ -156,8 +153,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'gritsbot_x', 'gritsbot_x Documentation',
-     author, 'gritsbot_x', 'One line description of project.',
+    (master_doc, 'gritsbotx', 'gritsbotx Documentation',
+     author, 'gritsbotx', 'One line description of project.',
      'Miscellaneous'),
 ]
 

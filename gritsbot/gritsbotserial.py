@@ -2,7 +2,6 @@ import serial
 import json
 import logging
 import threading
-import concurrent.futures as futures
 import time
 
 global logger
@@ -10,9 +9,12 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(module)s - %(message
 logger = logging.getLogger('root')
 logger.setLevel(logging.DEBUG)
 
+# Constants
+MAX_IN_WAITING = 500
+
 
 def _json_to_bytes(message):
-    """Dumps json data to ASCII
+    """Dumps json data to ASCI
 
     Raises:
         Exception: If the message cannot be JSON encoded.
@@ -34,23 +36,49 @@ def _bytes_to_json(message):
 
 
 class GritsbotSerial:
+    """Encapsulates serial communications to the microcontroller.
+
+    Serial communications are based on a request/response architecture.  This class assumes nothing about the form of these, except that they are JSON-
+    encodable.
+
+    This class is made to be robust to errors and will restart the serial device if it encounters an error (e.g., if the cable is un/replugged).
+
+    Attributes:
+        _serial_dev (str): Path to the serial device.
+        _baud_rate (int): The baud rate for the serial device.
+        _timeout (int): Timeout for the serial reads in seconds.
+        _serial_cv (threading.Condition): Condition variable for synchronizing class.
+        _serial (serial.Serial): The pyserial object for serial communications.
+        _serial_task_thread (threading.Thread): Runs the internal restart task.
+        _stopped (bool): Whether the class has been stopped.
+        _started (bool): Whether the class has been started.
+        _needs_restart (bool): Whether the serial device should be restarted.
+
+    """
 
     def __init__(self, serial_dev='/dev/ttyACM0', baud_rate=500000, timeout=2):
-        self.serial_dev = serial_dev
-        self.baud_rate = baud_rate
-        self.timeout = timeout
-        self._executor = futures.ThreadPoolExecutor()
+        """Creates the serial communciations object.
+
+        Args:
+            serial_dev (str, optional): The path to the serial device.
+            baud_rate (int): Baud rate for the serial device.
+            timeout (int): Timeout for the serial read.
+
+        Examples:
+            >>> GritsbotSerial(serial_dev='/dev/ttyACM0', baud_rate=115200, timeout=5)
+
+        """
+        self._serial_dev = serial_dev
+        self._baud_rate = baud_rate
+        self._timeout = timeout
 
         # Serial-related attributes.  ALL OF THESE SHOULD BE CONTROLLED WHILE HOLDING THE LOCK
         self._serial_cv = threading.Condition()
         self._serial = None
-        self._future = None
+        self._serial_task_thread = None
         self._stopped = False
         self._started = False
         self._needs_restart = True
-
-        # Constants
-        self.MAX_IN_WAITING = 500
 
     def serial_request(self, msg, timeout=5):
         """Makes a request on a serial line
@@ -59,15 +87,16 @@ class GritsbotSerial:
             msg: A JSON-encodable (by json.dumps) object
 
         Raises:
-            RuntimeError: If the serial port has too many incoming bytes (speciefied by MAX_IN_WAITING).
-            RuntimeError: If the serial port cannot be written to or read from.
-            RuntimeError: If the serial port has not been initialized.
+            RuntimeError: If the serial port has too many incoming bytes (specified by MAX_IN_WAITING); if the serial port cannot be written to or read from;
+            if the serial port has not been initialized.
 
         Returns:
-            JSON-formatted dict containing the return message.
+            dict: JSON-formatted dict containing the return message.
+
+        Examples:
+            >>> response = GritsbotSerial.serial_request(request, timeout=1)
 
         """
-
         with self._serial_cv:
             if(not self._started):
                 error_msg = 'Serial connection must be started prior to calling this method.'
@@ -155,35 +184,6 @@ class GritsbotSerial:
             RuntimeError: If the serial connection cannot be established within timeout.
 
         """
-
-        def serial_task():
-            while (not self._stopped):
-                start_time = time.time()
-
-                with self._serial_cv:
-                    while (not self._needs_restart and not self._stopped):
-                        self._serial_cv.wait()
-
-                    if(self._stopped):
-                        break
-                    else:
-                        # Need to restart serial
-                        if(self._serial is not None):
-                            self._serial.close()
-                            self._serial = None
-
-                        try:
-                            self._serial = serial.Serial(self.serial_dev, self.baud_rate, timeout=self.timeout)
-                            # If we succeeded, no longer need to restart serial
-                            self._needs_restart = False
-                            self._serial_cv.notify_all()
-                        except Exception as e:
-                            logger.critical('Could not get serial device ({})'.format(self.serial_dev))
-                            logger.critical(repr(e))
-
-                # Wait at least one second between retries
-                time.sleep(max(0, 1 - (time.time() - start_time)))
-
         # Wait for initial connection
         with self._serial_cv:
             if(self._started):
@@ -196,7 +196,8 @@ class GritsbotSerial:
 
             # If it's already been started, we can't get to this part of the code
             self._started = True
-            self._future = self._executor.submit(serial_task)
+            self._serial_task_thread = threading.Thread(target=self._serial_task)
+            self._serial_task_thread.start()
 
             # Wait to acquire the serial connection once
             while(self._needs_restart):
@@ -216,16 +217,48 @@ class GritsbotSerial:
         Closes the underlying pyserial connection.  If the serial connection has not been started, does nothing.
 
         """
-
         # If we've previously started serial, stop it.
         with self._serial_cv:
             self._stopped = True
             self._serial_cv.notify_all()
 
-            self._executor.shutdown()
+            self._serial_task_thread.join()
 
             # If the serial connection was never started, don't shut it down
             if(self._started):
                 if(self._serial is not None):
                     self._serial.close()
                     self._serial = None
+
+    def _serial_task(self):
+        """Restarts the serial if the serial device stops responding.
+
+        Only meant to be run by an the interal thread!
+
+        """
+        while (not self._stopped):
+            start_time = time.time()
+
+            with self._serial_cv:
+                while (not self._needs_restart and not self._stopped):
+                    self._serial_cv.wait()
+
+                if(self._stopped):
+                    break
+                else:
+                    # Need to restart serial
+                    if(self._serial is not None):
+                        self._serial.close()
+                        self._serial = None
+
+                    try:
+                        self._serial = serial.Serial(self._serial_dev, self._baud_rate, timeout=self._timeout)
+                        # If we succeeded, no longer need to restart serial
+                        self._needs_restart = False
+                        self._serial_cv.notify_all()
+                    except Exception as e:
+                        logger.critical('Could not get serial device ({})'.format(self.serial_dev))
+                        logger.critical(repr(e))
+
+            # Wait at least one second between retries
+            time.sleep(max(0, 1 - (time.time() - start_time)))

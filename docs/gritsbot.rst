@@ -4,10 +4,10 @@ gritsbot package
 Submodules
 ----------
 
-gritsbot\.gritsbot module
+gritsbot\.firmware module
 -------------------------
 
-.. automodule:: gritsbot.gritsbot
+.. automodule:: gritsbot.firmware
     :members:
     :undoc-members:
     :show-inheritance:
@@ -19,6 +19,7 @@ gritsbot\.gritsbotserial module
     :members:
     :undoc-members:
     :show-inheritance:
+
 
 Module contents
 ---------------

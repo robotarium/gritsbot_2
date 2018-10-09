@@ -21,7 +21,11 @@ def get_mac():
     """Gets the MAC address for the robot from the network config info.
 
     Returns:
-        A MAC address for the robot.
+        str: A MAC address for the robot.
+
+    Example:
+        >>> print(get_mac())
+        AA:BB:CC:DD:EE:FF
 
     """
     hex_mac = hex(getnode())[2:].zfill(12)
@@ -37,10 +41,12 @@ def create_node_descriptor(end_point):
         end_point (str): The ID of the robot.
 
     Returns:
-        A node descriptor of the vizier format for the robot.
+        dict: A node descriptor of the vizier format for the robot.
+
+    Example:
+        >>> node_descriptor(1)
 
     """
-
     node_descriptor = \
         {
             'end_point': end_point,
@@ -60,35 +66,52 @@ def create_node_descriptor(end_point):
 
     return node_descriptor
 
-# Proposed request packet structure
-# Read battery voltage
-# request = {'request': 'read', 'iface': 'batt_volt'}
-
-# Read charge status
-# request = {'request': 'read', 'iface': 'charge_status'}
-
-# Write motor velocities
-# request = {'request': 'write', 'iface': 'motor', 'body': {'v': 0, 'w': 0}}
-
-# Write left led
-# request = {'request': 'write', 'iface': 'left_led', 'body': {'rgb': [255, 0, 0]}}
-
-# Write right led
-# request = {'request': 'write', 'iface': 'right_led', 'body': {'rgb': [255, 0, 0]}}
-
 # Responses
 # Battery voltage response
 # response = {'status': 1, 'body': {'bat_volt': 4.3}}
 
 
 class Request:
+    """Represents serial requests to the microcontroller.
 
-    def __init__(self, iface=[], request=[], body={}):
+    The serial commnunications operate on a request/response architecture.  For example, the request is of a form (when JSON encoded)
+
+    .. code-block:: python
+
+        {'request': ['read', 'write', 'read'], 'iface': [iface1, iface2, iface3], body: [body1, body2, body3]}
+
+    Attributes:
+        request (list): A list of requests (or actions) to perform.  Must be 'read' or 'write'.
+        iface (list): A list of interfaces on which to perform the request
+        body (list): A list of bodies for the requests.  These are empty if the request is a read.
+
+    """
+
+    def __init__(self):
+        """Initializes a request with optional iface, request, and body parameters.
+
+        Returns:
+            The created request.
+
+        """
         self.iface = []
         self.request = []
         self.body = []
 
     def add_write_request(self, iface, body):
+        """Adds a write to the request.
+
+        Args:
+            iface (str): The interface to write.
+            body (dict): A JSON-encodable body to be written.
+
+        Returns:
+            The modified request containing the new interface and body.
+
+        Examples:
+            >>> r = Request().add_write_request('motor', {'v': 0.1, 'w': 0.0})
+
+        """
         self.iface.append(iface)
         self.request.append('write')
         self.body.append(body)
@@ -96,6 +119,15 @@ class Request:
         return self
 
     def add_read_request(self, iface):
+        """Adds a read to the request.
+
+        Args:
+            iface (str): Interface from which to read.
+
+        Returns:
+            The request with the added read.
+
+        """
         self.iface.append(iface)
         self.request.append('read')
         self.body.append({})
@@ -103,6 +135,15 @@ class Request:
         return self
 
     def to_json_encodable(self):
+        """Turns the request into a JSON-encodable dict.
+
+        Raises:
+            Exception: If an underlying body element is not JSON-encodable.
+
+        Returns:
+            dict: A JSON-encodable dict representing the request.
+
+        """
         req = {'request': self.request, 'iface': self.iface}
 
         if(self.body):
@@ -292,8 +333,6 @@ def main():
             logger.info('Status data ({})'.format(status_data))
             logger.info('Last input message received ({})'.format(last_input_msg))
             print_time = time.time()
-
-        logger.info(time.time() - start_time)
 
         # Sleep for whatever time is left at the end of the loop
         time.sleep(max(0, update_rate - (time.time() - start_time)))

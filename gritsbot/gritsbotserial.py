@@ -143,7 +143,7 @@ class GritsbotSerial:
                 self._serial_cv.notify_all()
                 raise RuntimeError(error_msg)
 
-            if(self._serial.in_waiting > self.MAX_IN_WAITING):
+            if(self._serial.in_waiting > MAX_IN_WAITING):
                 error_msg = 'Too many incoming bytes waiting on serial port ({})'.format(self._serial.in_waiting)
                 logger.warning(error_msg)
 

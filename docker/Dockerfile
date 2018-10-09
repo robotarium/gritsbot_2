@@ -3,7 +3,7 @@ FROM arm32v6/alpine
 RUN apk update && apk upgrade
 
 # Get python
-RUN apk add git python3 python3-dev gcc musl-dev
+RUN apk add git python3 python3-dev gcc musl-dev linux-headers
 
 ARG GIT-RECLONE
 

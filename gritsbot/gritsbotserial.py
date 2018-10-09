@@ -257,7 +257,7 @@ class GritsbotSerial:
                         self._needs_restart = False
                         self._serial_cv.notify_all()
                     except Exception as e:
-                        logger.critical('Could not get serial device ({})'.format(self.serial_dev))
+                        logger.critical('Could not get serial device ({})'.format(self._serial_dev))
                         logger.critical(repr(e))
 
             # Wait at least one second between retries

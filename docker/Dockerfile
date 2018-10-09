@@ -3,7 +3,9 @@ FROM arm32v6/alpine
 RUN apk update && apk upgrade
 
 # Get python
-RUN apk add git python3
+RUN apk add git python3 python3-dev gcc musl-dev
+
+ARG GIT-RECLONE
 
 RUN git clone https://github.com/robotarium/vizier
 RUN cd vizier && python3 -m pip install .

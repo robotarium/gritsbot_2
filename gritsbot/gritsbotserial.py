@@ -233,7 +233,7 @@ class GritsbotSerial:
     def _serial_task(self):
         """Restarts the serial if the serial device stops responding.
 
-        Only meant to be run by an the interal thread!
+        Only meant to be run by the interal thread!
 
         """
         while (not self._stopped):

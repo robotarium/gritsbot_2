@@ -5,9 +5,6 @@ RUN apk update && apk upgrade
 # Get python
 RUN apk add git python3 python3-dev gcc musl-dev linux-headers
 
-ARG GIT-RECLONE
-
-
 ADD https://api.github.com/repos/robotarium/vizier/git/refs/heads/master version.json
 RUN git clone https://github.com/robotarium/vizier
 RUN cd vizier && python3 -m pip install .

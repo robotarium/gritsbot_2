@@ -1,10 +1,8 @@
-# gritsbot_2
+# Setup Process for the gritsbot\_2
 
-# Setup Process
+## 1 - Load the RPi image onto an SD card
 
-## 1 
-
-Install latest Raspbian to SD card.  Your .zip file may have a different name.
+Install latest Raspbian to SD card.  Your .zip file may have a different name. 
 
 ```
 unzip -p 2018-04-18-raspbian-stretch.zip | sudo dd status=progress of=/dev/sdX bs=4M conv=fsync 
@@ -40,7 +38,8 @@ Boot the PI and ssh to it.  Then, launch
 sudo raspi-config
 ```
 
-Disable the *SSH console options, splash, and boot to the CLI*. Disable waiting for network on boot 
+Disable the **SSH console options, splash, and waiting for network on boot.** Enable **boot to the CLI**.  Remain SSHd to the RPi for the 
+next steps.
 
 ## 3 - Disable Unused Services 
 
@@ -54,11 +53,11 @@ disable_splash=1
 dtoverlay=pi3-disable-bt
 ```
 
-Suppress some output on boot by adding the 'quiet' flag to /boot/cmdline.txt.  The exact line may
-be different.  However, you should just add the quiet flag at the specified location.
+Suppress some output on boot by adding the 'quiet' flag to /boot/cmdline.txt.  The exact content of the /boot/config.txt may
+be different; however, you should just add the quiet flag at the specified location.
 
 ```
-dwc\_otg.lpm\_enable=0 console=serial0,115200 console=tty1 root=PARTUUID=32e07f87-02 rootfstype=ext4 elevator=deadline fsck.repair=yes quiet rootwait
+dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=PARTUUID=32e07f87-02 rootfstype=ext4 elevator=deadline fsck.repair=yes quiet rootwait
 ```
 
 Remove plymouth with 

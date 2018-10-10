@@ -2,7 +2,7 @@ FROM arm32v6/alpine
 
 RUN apk update && apk upgrade
 
-# Get python
+# Get python + deps.  Most of these are actually for netifaces install
 RUN apk add git python3 python3-dev gcc musl-dev linux-headers
 
 ADD https://api.github.com/repos/robotarium/vizier/git/refs/heads/master version.json

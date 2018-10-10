@@ -75,7 +75,7 @@ sudo systemctl disable keyboard-setup.service
 sudo systemctl disable dphys-swapfile.service
 ```
 
-## 2 - Install Docker
+## 4 - Install Docker
 
 This section follows from the official (Docker)[https://docs.docker.com/install/linux/docker-ce/ubuntu/].  First, remove old versions of Docker.
 
@@ -95,3 +95,19 @@ Now tie Docker to the pi user so that we don't need sudo to use Docker.
 sudo usermod -aG docker pi
 ```
 
+## 5 - Install Firmware Container
+
+From wherever the git repository is cloned, run 
+
+```
+cd <path_to_gritsbot_2_repo>/docker
+./docker_build.sh
+```
+
+Then, it remains to start the firmware.  Running 
+
+```
+./docker_run.sh
+```
+
+will permanently start a Docker container running the firmware.  The container should persist through boot.

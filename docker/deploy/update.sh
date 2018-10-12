@@ -22,19 +22,8 @@ fi
 # First arg image, second arg repo
 while :
 do
-	set -e
-	BASE_IMAGE=$1
-	REGISTRY=$2
-	if [ "$REGISTRY" != "" ]
-	then
-		echo "setting"
-		IMAGE="$REGISTRY/$BASE_IMAGE"
-	else
-		IMAGE=$BASE_IMAGE
-	fi
 	CID=$(docker ps | awk '{print $1 " " $2}' | grep $IMAGE | awk '{print $1}')
 	docker ps
-	echo "$CID"
 	docker pull $IMAGE
 
 	if [ "$CID" == "" ]
@@ -56,11 +45,6 @@ do
 			docker stop $NAME
 			docker rm -f $NAME
 			./start_container.sh $IMAGE
-		
-			# Stop, kill, and restart container
-	        	#stop docker-$NAME
-	        	#docker rm -f $NAME
-	        	#start docker-$NAME
 	    	else
 	    		echo "$NAME up to date"
 	    	fi

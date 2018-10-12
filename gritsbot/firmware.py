@@ -3,7 +3,6 @@ import json
 import vizier.node as node
 import time
 import argparse
-from uuid import getnode
 import logging
 import queue
 import netifaces
@@ -32,9 +31,6 @@ def get_mac():
 
     interface = [x for x in netifaces.interfaces() if 'wlan' in x][0]
     return netifaces.ifaddresses(interface)[netifaces.AF_LINK][0]['addr']
-
-    #hex_mac = hex(getnode())[2:].zfill(12)
-    #return ':'.join(x + y for x, y in zip(hex_mac[::2], hex_mac[1::2]))
 
 
 def create_node_descriptor(end_point):
@@ -79,7 +75,7 @@ def create_node_descriptor(end_point):
 class Request:
     """Represents serial requests to the microcontroller.
 
-    The serial commnunications operate on a request/response architecture.  For example, the request is of a form (when JSON encoded)
+    The serial communications operate on a request/response architecture.  For example, the request is of a form (when JSON encoded)
 
     .. code-block:: python
 
@@ -331,7 +327,7 @@ def main():
             if(len(handlers) > 0):
                 logger.critical('Malformed response ({})'.format(response))
 
-        robot_node.put(status_link, status_data)
+        robot_node.put(status_link, json.dumps(status_data))
 
         # Print out status data
         if((start_time - print_time) >= status_update_rate):

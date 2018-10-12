@@ -22,15 +22,16 @@ fi
 # First arg image, second arg repo
 while :
 do
-	CID=$(docker ps | awk '{print $1 " " $2}' | grep $IMAGE | awk '{print $1}')
 	docker ps
-	docker pull $IMAGE
+	CID=$(docker ps | awk '{print $1 " " $2}' | grep $IMAGE | awk '{print $1}')
 
 	if [ "$CID" == "" ]
 	then
 		echo "Container not running.  Starting."
 		./start_container.sh $IMAGE
 	fi
+
+	docker pull $IMAGE
 	
 	for im in $CID
 	do

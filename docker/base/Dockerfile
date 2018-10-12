@@ -1,5 +1,7 @@
 FROM arm32v6/alpine
 
+COPY qemu-arm-static /usr/bin
+
 RUN apk update && apk upgrade
 
 # Get python + deps.  Most of these are actually for netifaces install

@@ -4,6 +4,6 @@
 docker run -d --restart=always \
 	--name firmware \
 	--net host \
-	--device $(python3 -m gritsbot.utils.detect_serial):/dev/ttyACM0 \
+	--device $(python3 gritsbot_2/gritsbot/detect_serial.py):/dev/ttyACM0 \
 	$1 \
 	python3 gritsbot_2/gritsbot/firmware.py -host 192.168.1.8 -port 1884 gritsbot_2/config/mac_list.json

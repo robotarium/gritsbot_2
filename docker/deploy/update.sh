@@ -36,6 +36,12 @@ do
 	docker ps
 	echo "$CID"
 	docker pull $IMAGE
+
+	if [ "$CID" == "" ]
+	then
+		echo "Container not running.  Starting."
+		./start_container.sh $IMAGE
+	fi
 	
 	for im in $CID
 	do
@@ -44,7 +50,8 @@ do
 		NAME=$(docker inspect --format "{{.Name}}" $im | sed "s/\///g")
 	    	echo "Latest:" $LATEST
 	    	echo "Running:" $RUNNING
-	    	if [ "$RUNNING" != "$LATEST" ];then
+	    	if [ "$RUNNING" != "$LATEST" ]
+		then
 	    		echo "upgrading $NAME"
 			docker stop $NAME
 			docker rm -f $NAME

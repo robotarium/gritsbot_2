@@ -168,6 +168,8 @@ def handle_read_response(iface, status, body):
 
 def main():
 
+    print('Auto deploy!')
+
     parser = argparse.ArgumentParser()
     parser.add_argument("mac_list", help="JSON file containing MAC to id mapping")
     parser.add_argument("-port", type=int, help="MQTT Port", default=8080)

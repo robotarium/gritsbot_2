@@ -113,6 +113,7 @@ class Request:
             >>> r = Request().add_write_request('motor', {'v': 0.1, 'w': 0.0})
 
         """
+
         self.iface.append(iface)
         self.request.append('write')
         self.body.append(body)
@@ -129,6 +130,7 @@ class Request:
             The request with the added read.
 
         """
+
         self.iface.append(iface)
         self.request.append('read')
         self.body.append({})
@@ -145,6 +147,7 @@ class Request:
             dict: A JSON-encodable dict representing the request.
 
         """
+
         req = {'request': self.request, 'iface': self.iface}
 
         if(self.body):

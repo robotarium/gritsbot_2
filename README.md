@@ -111,3 +111,55 @@ Then, it remains to start the firmware.  Running
 ```
 
 will permanently start a Docker container running the firmware.  The container should persist through boot.
+
+## 6 - Setup Auto Deployment
+
+**STILL IN PROGRESS**
+
+Most of this info is from the (docker guide to registries)[https://docs.docker.com/registry/deploying/].
+
+Alternatively, you may set up automatic deployment so that each robot updates on its own.  In this case, navigate to the registry directory and 
+start the registry for the container.  
+
+Obtain the registry on the **HOST** computer by running 
+```
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+```
+which will pull and run the container.  To only pull,
+```
+docker pull registry:2
+```
+should work
+
+Under whatever the registry's computer's IP is, allow this in the file located at 
+```
+/etc/docker/daemon.json
+```
+In particular, add the lines
+```
+{ "insecure-registries": ["<ip_of_registry_computer>:5000"] }
+```
+
+For example,
+```
+{ "insecure-registries": ["192.168.1.8:5000"] }
+```
+These lines must be added on the **host machine** as well as **all the robots.**  After you've added these lines, restart the Docker service with 
+```
+sudo /etc/init.d/docker restart
+```
+
+Push the firmware to the registry with 
+```
+docker tag robotarium:firmware <ip_of_registry_computer>:5000/firmware
+docker push 192.168.1.8:5000/firmware
+```
+which will push the firmware container to the registry under the name firmware and the (default) latest tag.
+
+You can check the current images maintained by the registry by checking the catalog with the command
+```
+curl -X GET 192.168.1.8:5000/v2/_catalog
+```
+
+Now, on the robot, navigate to the docker/deploy directory and build the robotarium:updater container.  This container will automatically update 
+and restart the firmware container by pulling from the designated registry.

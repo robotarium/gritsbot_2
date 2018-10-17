@@ -21,6 +21,23 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import sys
+import os
+import sphinx
+from unittest.mock import MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+MOCK_MODULES = ['pyserial', 'argparse']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+sys.path.insert(0, os.path.abspath('../'))
 
 # -- General configuration ------------------------------------------------
 

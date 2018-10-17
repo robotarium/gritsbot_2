@@ -2,10 +2,10 @@
 
 ## 1 - Load the RPi image onto an SD card
 
-Install latest Raspbian to SD card.  Your .zip file may have a different name. 
+Install latest Raspbian lite to an SD card.  Your .zip file may have a different name. 
 
 ```
-unzip -p 2018-04-18-raspbian-stretch.zip | sudo dd status=progress of=/dev/sdX bs=4M conv=fsync 
+unzip -p 2018-10-09-raspbian-stretch-lite.zip | sudo dd status=progress of=/dev/sdX bs=4M conv=fsync 
 ```
  
 Navigate to boot partition.  Place ssh, and wpa\_supplicant.conf files in boot partition.
@@ -95,7 +95,30 @@ Now tie Docker to the pi user so that we don't need sudo to use Docker.
 sudo usermod -aG docker pi
 ```
 
-## 5 - Install Firmware Container
+## 5 - Clone Git Repos and install Deps
+
+To clone the firmware, run
+```
+sudo apt-get install git
+git clone https://github.com/robotarium/gritsbot_2
+
+#TODO: Figure out a way to remove these deps
+
+```
+
+Install pip for python3
+
+```
+sudo apt-get install python3-pip
+```
+
+as well as the python serial library used to communicate to the robot.
+
+```
+python3 -m pip install pyserial
+```
+
+## 6 - Install Firmware Container
 
 From wherever the git repository is cloned, run 
 
@@ -112,7 +135,7 @@ Then, it remains to start the firmware.  Running
 
 will permanently start a Docker container running the firmware.  The container should persist through boot.
 
-## 6 - Setup Auto Deployment
+## 7 - Setup Auto Deployment
 
 **STILL IN PROGRESS**
 
@@ -139,6 +162,7 @@ In particular, add the lines
 ```
 { "insecure-registries": ["<ip_of_registry_computer>:5000"] }
 ```
+Put in the IP right away.  **Errors in this script will kill the Docker service, so be careful!**
 
 For example,
 ```

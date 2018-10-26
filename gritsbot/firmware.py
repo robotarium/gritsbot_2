@@ -3,15 +3,12 @@ import json
 import vizier.node as node
 import time
 import argparse
-import logging
 import queue
 import netifaces
+import vizier.log as log
 
-# Set up logging
 global logger
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-logger = logging.getLogger('root')
-logger.setLevel(logging.DEBUG)
+logger = log.get_logger()
 
 # Constants
 MAX_QUEUE_SIZE = 100
@@ -170,8 +167,6 @@ def handle_read_response(iface, status, body):
 
 
 def main():
-
-    print('Auto deploy!')
 
     parser = argparse.ArgumentParser()
     parser.add_argument("mac_list", help="JSON file containing MAC to id mapping")

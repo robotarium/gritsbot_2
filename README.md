@@ -187,3 +187,12 @@ curl -X GET 192.168.1.8:5000/v2/_catalog
 
 Now, on the robot, navigate to the docker/deploy directory and build the robotarium:updater container.  This container will automatically update 
 and restart the firmware container by pulling from the designated registry.
+
+## 8 - WiFi Power Management
+
+Turn off power management by adding the line
+```
+/sbin/iw dev wlan0 set power_save off
+```
+
+in the file /etc/rc.local.  This line disables WiFi power management on boot.

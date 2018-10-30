@@ -2,6 +2,6 @@
 
 docker run -d \
 	--restart always \
-	--name watchtower_firmware \
+	--name watchtower \
 	-v /var/run/docker.sock:/var/run/docker.sock \
-	v2tec/watchtower:armhf-latest -i 60 --debug firmware
+	v2tec/watchtower:armhf-latest -i 60 --debug

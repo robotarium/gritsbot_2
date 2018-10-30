@@ -1,9 +1,8 @@
 #!/bin/bash
 
-set -e
-BASE_IMAGE=$1
-REGISTRY=$2
-
+# This script uses the environment variables BASE_IMAGE and REGISTRY which should be set
+# during the build process
+set -e 
 if [ "$BASE_IMAGE" == "" ]
 then
 	echo "Must supply base image in first argument."
@@ -31,7 +30,7 @@ do
 		./start_container.sh $IMAGE
 	fi
 
-	docker pull $IMAGE
+docker pull $IMAGE
 	
 	for im in $CID
 	do

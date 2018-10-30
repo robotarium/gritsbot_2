@@ -18,9 +18,5 @@ RUN cd gritsbot_2 && python3 -m pip install .
 ARG ROBO_HOST
 ARG ROBO_PORT
 
-ENV ROBOT_HOST ${ROBO_HOST}
-ENV ROBOT_PORT ${ROBOT_PORT}
-
-ENTRYPOINT [ "python3", "gritsbot_2/gritsbot/firmware.py", "-host", "$ROBO_HOST", "-port", "$ROBO_PORT", "gritsbot_2/config/maclist.json" ]
-
-
+# Has to be in this format!  Docker doesn't like to interpret the env variables properly in JSON form
+ENTRYPOINT python3 gritsbot_2/gritsbot/firmware.py -host ${ROBO_HOST} -port ${ROBO_PORT} gritsbot_2/config/mac_list.json

@@ -11,6 +11,15 @@ print_end() {
 	echo "$DEL ""$FIN ""$1"" $DEL"	
 }
 
+STR="DISABLING UNUSED SERVICES"
+print_start "$STR"
+sudo apt-get purge -y --remove plymouth
+sudo systemctl disable triggerhappy.service
+sudo systemctl disable hciuart.service
+sudo systemctl disable keyboard-setup.service
+sudo systemctl disable dphys-swapfile.service
+print_end "$STR"
+
 STR="INSTALLING DOCKER"
 print_start "$STR"
 sudo apt-get remove docker docker-engine docker.io
@@ -24,21 +33,6 @@ sudo apt-get install -y python3-pip git
 sudo python3 -m pip install pyserial
 print_end "$STR"
 
-STR="DISABLING BLUETOOTH"
-print_start "$STR"
-sudo echo "# Disable bluetooth" >> /boot/config.txt
-sudo echo "dtoverlay=pi3-disable-bt" >> /boot/config.txt
-print_end "$STR"
-
-STR="DISABLING UNUSED SERVICES"
-print_start "$STR"
-sudo apt-get purge --remove plymouth
-sudo systemctl disable triggerhappy.service
-sudo systemctl disable hciuart.service
-sudo systemctl disable keyboard-setup.service
-sudo systemctl disable dphys-swapfile.service
-print_end "$STR"
-
 STR="CLONING GIT REPOS"
 print_start "$STR"
 cd ~/
@@ -50,7 +44,7 @@ print_end "$STR"
 
 STR="TURNING OFF WIFI POWER MANAGEMENT"
 print_start "$STR"
-sudo echo "/sbin/iw dev wlan0 set power_save off" >> /etc/rc.local
+echo "/sbin/iw dev wlan0 set power_save off" | sudo tee -a /etc/rc.local
 print_end "$STR"
 
 STR="STARTING CONTAINERS"
@@ -60,7 +54,7 @@ sudo ./docker_run.sh
 sudo ./docker_watch.sh
 cd ~/git/mac_discovery/docker
 sudo ./docker_run.sh
-print_end "$END"
+print_end "$STR"
 
 # Delete me
 #rm $0

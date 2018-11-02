@@ -11,6 +11,14 @@ print_end() {
 	echo "$DEL ""$FIN ""$1"" $DEL"	
 }
 
+STR="DISABLING WIFI POWER MANAGEMENT"
+print_start "$STR"
+echo "#!/bin/sh" >> turn_off_wifi_power.sh
+echo "/sbin/iw dev wlan0 set power_save off" >> turn_off_wifi_power.sh
+chmod +x turn_off_wifi_power
+sudo mv turn_off_wifi_power /etc/init.d/
+print_end "$STR"
+
 STR="DISABLING UNUSED SERVICES"
 print_start "$STR"
 sudo apt-get purge -y --remove plymouth

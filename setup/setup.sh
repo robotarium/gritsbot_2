@@ -21,7 +21,7 @@ print_end "$STR"
 STR="INSTALLING PYTHON AND DEPS"
 print_start "$STR"
 sudo apt-get install -y python3-pip git
-python3 -m pip install pyserial
+sudo python3 -m pip install pyserial
 print_end "$STR"
 
 STR="DISABLING BLUETOOTH"

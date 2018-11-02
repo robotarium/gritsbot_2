@@ -13,10 +13,10 @@ print_end() {
 
 STR="DISABLING WIFI POWER MANAGEMENT"
 print_start "$STR"
-echo "#!/bin/sh" >> turn_off_wifi_power.sh
-echo "/sbin/iw dev wlan0 set power_save off" >> turn_off_wifi_power.sh
-chmod +x turn_off_wifi_power.sh
-sudo mv turn_off_wifi_power.sh /etc/init.d/
+echo '#!/bin/sh' >> turn_off_wifi_power
+echo '/sbin/iw dev wlan0 set power_save off' >> turn_off_wifi_power
+chmod +x turn_off_wifi_power
+sudo mv turn_off_wifi_power /etc/network/if-up.d/
 print_end "$STR"
 
 STR="DISABLING UNUSED SERVICES"
@@ -60,5 +60,5 @@ sudo ./docker_run.sh
 print_end "$STR"
 
 # Delete me
-#rm $0
+rm $0
 

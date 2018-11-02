@@ -97,19 +97,22 @@ sudo usermod -aG docker pi
 
 ## 5 - Clone Git Repos and install Deps
 
-To clone the firmware, run
-```
-sudo apt-get install git
-git clone https://github.com/robotarium/gritsbot_2
-
-#TODO: Figure out a way to remove these deps
-
-```
-
 Install pip for python3
 
 ```
 sudo apt-get install python3-pip
+```
+
+To clone the firmware, run
+```
+sudo apt-get install git
+git clone https://github.com/robotarium/gritsbot_2
+```
+
+Also, install the MAC discovery repository
+```
+sudo apt-get install git
+git clone https://github.com/robotarium/mac_discovery
 ```
 
 as well as the python serial library used to communicate to the robot.
@@ -118,24 +121,33 @@ as well as the python serial library used to communicate to the robot.
 python3 -m pip install pyserial
 ```
 
-## 6 - Install Firmware Container
+## 6 - WiFi Power Management
+
+Turn off power management by adding the line
+```
+/sbin/iw dev wlan0 set power_save off
+```
+
+in the file /etc/rc.local.  This line disables WiFi power management on boot.
+
+## 7 - Start necessary containers
 
 From wherever the git repository is cloned, run 
-
 ```
 cd <path_to_gritsbot_2_repo>/docker
-./docker_build.sh
+./docker_run.sh
+./docker_watch.sh
 ```
+which will permanently start a Docker container running the firmware and the watchtower container.  Watchtower watches containers and automatically updates them from Dockerhub.  This watchtower instance
+checks and updates **all running containers**, so this instance will also update the MAC container as well.
 
-Then, it remains to start the firmware.  Running 
-
+Start MAC discovery as well with
 ```
+cd <path_to_mac_discovery_repo>/docker
 ./docker_run.sh
 ```
 
-will permanently start a Docker container running the firmware.  The container should persist through boot.
-
-## 7 - Setup Auto Deployment
+## 8 - Setup Auto Deployment (IN PROGRESS)
 
 **STILL IN PROGRESS**
 
@@ -188,11 +200,4 @@ curl -X GET 192.168.1.8:5000/v2/_catalog
 Now, on the robot, navigate to the docker/deploy directory and build the robotarium:updater container.  This container will automatically update 
 and restart the firmware container by pulling from the designated registry.
 
-## 8 - WiFi Power Management
 
-Turn off power management by adding the line
-```
-/sbin/iw dev wlan0 set power_save off
-```
-
-in the file /etc/rc.local.  This line disables WiFi power management on boot.

@@ -42,12 +42,6 @@ git clone https://github.com/robotarium/gritsbot_2
 git clone https://github.com/robotarium/mac_discovery
 print_end "$STR"
 
-STR="TURNING OFF WIFI POWER MANAGEMENT"
-print_start "$STR"
-echo "/sbin/iw dev wlan0 set power_save off" | sudo cat - /etc/rc.local > output.txt
-sudo mv output.txt /etc/rc.local
-print_end "$STR"
-
 STR="STARTING CONTAINERS"
 print_start "$STR"
 cd ~/git/gritsbot_2/docker

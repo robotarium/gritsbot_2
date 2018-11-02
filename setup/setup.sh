@@ -44,7 +44,8 @@ print_end "$STR"
 
 STR="TURNING OFF WIFI POWER MANAGEMENT"
 print_start "$STR"
-echo "/sbin/iw dev wlan0 set power_save off" | sudo tee -a /etc/rc.local
+echo "/sbin/iw dev wlan0 set power_save off" | sudo cat - /etc/rc.local > output.txt
+sudo mv output.txt /etc/rc.local
 print_end "$STR"
 
 STR="STARTING CONTAINERS"

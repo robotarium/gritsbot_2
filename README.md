@@ -46,9 +46,6 @@ next steps.
 Add to /boot/config.txt the text
 
 ```
-# Disable the rainbow splash screen
-disable_splash=1
-
 # Disable bluetooth
 dtoverlay=pi3-disable-bt
 ```
@@ -56,6 +53,7 @@ dtoverlay=pi3-disable-bt
 Suppress some output on boot by adding the 'quiet' flag to /boot/cmdline.txt.  The exact content of the /boot/config.txt may
 be different; however, you should just add the quiet flag at the specified location.
 
+** DON't DO THIS**
 ```
 dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=PARTUUID=32e07f87-02 rootfstype=ext4 elevator=deadline fsck.repair=yes quiet rootwait
 ```
@@ -111,7 +109,6 @@ git clone https://github.com/robotarium/gritsbot_2
 
 Also, install the MAC discovery repository
 ```
-sudo apt-get install git
 git clone https://github.com/robotarium/mac_discovery
 ```
 

@@ -2,6 +2,8 @@
 
 # 1 - Making the Base Image
 
+This section details how to make the base image.  Relatively few changes are made to keep the image small.  Once the changes in this section have been made, copy the new image to an SD card and use that as the base image.
+
 ## 1 - Load the RPi image onto an SD card
 
 Install latest Raspbian lite to an SD card.  Your .zip file may have a different name. 
@@ -40,8 +42,7 @@ Boot the PI and ssh to it.  Then, launch
 sudo raspi-config
 ```
 
-Disable the **SSH console options, splash, and waiting for network on boot.** Enable **boot to the CLI**.  Remain SSHd to the RPi for the 
-next steps.
+Disable the **SSH console options, splash, and waiting for network on boot.** Enable **boot to the CLI**.  Remain SSHd to the RPi for the next steps.
 
 ## 3 - Disable Unused Services 
 
@@ -54,13 +55,15 @@ dtoverlay=pi3-disable-bt
 
 # 2 - Automated Setup
 
+This section assumes that you have built a base image as previously detailed.
+
 ## 1 - Automatic Installation
 
-To install the firmware automatically, move the setup script to the directory /home/pi on the SD card.  Then, 
-place the script setup\_service in the /etc/init.d directory.  When the pi starts, the items in this section will be automatically executed;
-then, the script deletes itself.  The log for the installation process can be viewed at /var/log/setup\_firmware.log
+To install the firmware automatically, move the setup script to the directory /home/pi on the SD card.  Then, place the script setup\_service in the /etc/init.d directory.  When the pi starts, the items in this section will be automatically executed; then, the script deletes itself.  The log for the installation process can be viewed at /var/log/setup\_firmware.log
 
 ## 2 - Manual Installation
+
+This section details the installation process for the firmware.  This process can be made automatic via the setup scripts.
 
 ### 1 Remove Unused Services
 

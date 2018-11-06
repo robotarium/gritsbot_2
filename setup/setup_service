@@ -10,7 +10,7 @@
 ### END INIT INFO
 
 SCRIPT=/home/pi/setup
-RUNAS=pi
+RUNAS=root
 
 PIDFILE=/var/run/setup_firmware.pid
 LOGFILE=/var/log/setup_firmware.log

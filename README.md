@@ -1,5 +1,7 @@
 # Setup Process for the gritsbot\_2
 
+# 1 - Making the Base Image
+
 ## 1 - Load the RPi image onto an SD card
 
 Install latest Raspbian lite to an SD card.  Your .zip file may have a different name. 
@@ -50,13 +52,17 @@ Add to /boot/config.txt the text
 dtoverlay=pi3-disable-bt
 ```
 
-Suppress some output on boot by adding the 'quiet' flag to /boot/cmdline.txt.  The exact content of the /boot/config.txt may
-be different; however, you should just add the quiet flag at the specified location.
+# 2 - Automated Setup
 
-** DON't DO THIS**
-```
-dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=PARTUUID=32e07f87-02 rootfstype=ext4 elevator=deadline fsck.repair=yes quiet rootwait
-```
+## 1 - Automatic Installation
+
+To install the firmware automatically, move the setup script to the directory /home/pi on the SD card.  Then, 
+place the script setup\_service in the /etc/init.d directory.  When the pi starts, the items in this section will be automatically executed;
+then, the script deletes itself.  The log for the installation process can be viewed at /var/log/setup\_firmware.log
+
+## 2 - Manual Installation
+
+### 1 Remove Unused Services
 
 Remove plymouth with 
 
@@ -73,7 +79,7 @@ sudo systemctl disable keyboard-setup.service
 sudo systemctl disable dphys-swapfile.service
 ```
 
-## 4 - Install Docker
+### 2 - Install Docker
 
 This section follows from the official (Docker)[https://docs.docker.com/install/linux/docker-ce/ubuntu/].  First, remove old versions of Docker.
 
@@ -93,7 +99,7 @@ Now tie Docker to the pi user so that we don't need sudo to use Docker.
 sudo usermod -aG docker pi
 ```
 
-## 5 - Clone Git Repos and install Deps
+### 3 - Clone Git Repos and install Deps
 
 Install pip for python3
 
@@ -118,7 +124,7 @@ as well as the python serial library used to communicate to the robot.
 python3 -m pip install pyserial
 ```
 
-## 6 - WiFi Power Management
+### 4 - WiFi Power Management
 
 Turn off power management by adding the line
 ```
@@ -127,7 +133,7 @@ Turn off power management by adding the line
 
 in the file /etc/rc.local.  This line disables WiFi power management on boot.
 
-## 7 - Start necessary containers
+### 5 - Start necessary containers
 
 From wherever the git repository is cloned, run 
 ```
@@ -144,9 +150,7 @@ cd <path_to_mac_discovery_repo>/docker
 ./docker_run.sh
 ```
 
-## 8 - Setup Auto Deployment (IN PROGRESS)
-
-**STILL IN PROGRESS**
+# DEPRECATED - Setup Auto Deployment
 
 Most of this info is from the (docker guide to registries)[https://docs.docker.com/registry/deploying/].
 

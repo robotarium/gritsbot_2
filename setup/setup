@@ -43,19 +43,19 @@ print_end "$STR"
 
 STR="CLONING GIT REPOS"
 print_start "$STR"
-cd ~/
+cd /home/pi
 mkdir git
-cd ~/git
+cd git
 git clone https://github.com/robotarium/gritsbot_2
 git clone https://github.com/robotarium/mac_discovery
 print_end "$STR"
 
 STR="STARTING CONTAINERS"
 print_start "$STR"
-cd ~/git/gritsbot_2/docker
+cd /home/pi/git/gritsbot_2/docker
 sudo ./docker_run.sh
 sudo ./docker_watch.sh
-cd ~/git/mac_discovery/docker
+cd /home/pi/git/mac_discovery/docker
 sudo ./docker_run.sh
 print_end "$STR"
 

@@ -6,7 +6,15 @@ This section details how to make the base image.  Relatively few changes are mad
 
 ## 1 - Load the RPi image onto an SD card
 
-Install latest Raspbian lite to an SD card.  Your .zip file may have a different name. 
+Install latest Raspbian lite to an SD card.  Your .zip file may have a different name. Now, connect the SD card to your computer and unmount it with 
+```
+umount /dev/<your card>
+``` 
+
+You can see the card (probably) with 
+```
+lsblk
+```
 
 ```
 unzip -p 2018-10-09-raspbian-stretch-lite.zip | sudo dd status=progress of=/dev/sdX bs=4M conv=fsync 

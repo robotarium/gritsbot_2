@@ -31,7 +31,8 @@ print_end "$STR"
 STR="INSTALLING DOCKER"
 print_start "$STR"
 sudo apt-get remove docker docker-engine docker.io
-curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh
+# Export version to avoid installing 18.09, which doesn't work on RPi zero
+curl -fsSL get.docker.com -o get-docker.sh && export VERSION=18.06 && sh get-docker.sh
 sudo usermod -aG docker pi
 print_end "$STR"
 

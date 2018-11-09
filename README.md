@@ -101,7 +101,7 @@ sudo apt-get remove docker docker-engine docker.io
 Next, install Docker using the convenience script.
 
 ```
-curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh
+curl -fsSL get.docker.com -o get-docker.sh && export VERSION=18.06 && sh get-docker.sh
 ```
 
 Now tie Docker to the pi user so that we don't need sudo to use Docker.

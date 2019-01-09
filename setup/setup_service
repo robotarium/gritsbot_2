@@ -1,65 +1,70 @@
 #!/bin/sh
 
-DEL="-------"
-FIN="DONE"
+### BEGIN INIT INFO
+# Provides:          setup_firmware
+# Required-Start:    $local_fs $network $named $time $syslog $portmapping
+# Required-Stop:     $local_fs $network $named $time $syslog 
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Description:       Sets up firmware
+### END INIT INFO
 
-print_start() {
-	echo "$DEL ""$1"" $DEL"
+SCRIPT=/home/pi/setup
+RUNAS=root
+
+PIDFILE=/var/run/setup_firmware.pid
+LOGFILE=/var/log/setup_firmware.log
+
+start() {
+  if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE"); then
+    echo 'Service already running' >&2
+    return 1
+  fi
+  echo 'Starting service…' >&2
+  local CMD="$SCRIPT &> \"$LOGFILE\" & echo \$!"
+  su -c "$CMD" $RUNAS > "$PIDFILE"
+  echo 'Service started' >&2
 }
 
-print_end() {
-	echo "$DEL ""$FIN ""$1"" $DEL"	
+stop() {
+  if [ ! -f "$PIDFILE" ] || ! kill -0 $(cat "$PIDFILE"); then
+    echo 'Service not running' >&2
+    return 1
+  fi
+  echo 'Stopping service…' >&2
+  kill -15 $(cat "$PIDFILE") && rm -f "$PIDFILE"
+  echo 'Service stopped' >&2
 }
 
-STR="DISABLING WIFI POWER MANAGEMENT"
-print_start "$STR"
-echo '#!/bin/sh' >> turn_off_wifi_power
-echo '/sbin/iw dev wlan0 set power_save off' >> turn_off_wifi_power
-chmod +x turn_off_wifi_power
-sudo mv turn_off_wifi_power /etc/network/if-up.d/
-print_end "$STR"
+uninstall() {
+  echo -n "Are you really sure you want to uninstall this service? That cannot be undone. [yes|No] "
+  local SURE
+  read SURE
+  if [ "$SURE" = "yes" ]; then
+    stop
+    rm -f "$PIDFILE"
+    echo "Notice: log file is not be removed: '$LOGFILE'" >&2
+    update-rc.d -f <NAME> remove
+    rm -fv "$0"
+  fi
+}
 
-STR="DISABLING UNUSED SERVICES"
-print_start "$STR"
-sudo apt-get purge -y --remove plymouth
-sudo systemctl disable triggerhappy.service
-sudo systemctl disable hciuart.service
-sudo systemctl disable keyboard-setup.service
-sudo systemctl disable dphys-swapfile.service
-print_end "$STR"
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  uninstall)
+    uninstall
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|uninstall}"
+esac
 
-STR="INSTALLING DOCKER"
-print_start "$STR"
-sudo apt-get remove docker docker-engine docker.io
-# Export version to avoid installing 18.09, which doesn't work on RPi zero
-curl -fsSL get.docker.com -o get-docker.sh && export VERSION=18.06 && sh get-docker.sh
-sudo usermod -aG docker pi
-print_end "$STR"
-
-STR="INSTALLING PYTHON AND DEPS"
-print_start "$STR"
-sudo apt-get install -y python3-pip git
-sudo python3 -m pip install pyserial
-print_end "$STR"
-
-STR="CLONING GIT REPOS"
-print_start "$STR"
-cd /home/pi
-mkdir git
-cd git
-git clone https://github.com/robotarium/gritsbot_2
-git clone https://github.com/robotarium/mac_discovery
-print_end "$STR"
-
-STR="STARTING CONTAINERS"
-print_start "$STR"
-cd /home/pi/git/gritsbot_2/docker
-sudo ./docker_run.sh
-sudo ./docker_watch.sh
-cd /home/pi/git/mac_discovery/docker
-sudo ./docker_run.sh
-print_end "$STR"
-
-# Delete me
-rm $0
-
+exit 0

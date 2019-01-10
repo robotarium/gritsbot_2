@@ -30,6 +30,7 @@ git clone https://github.com/robotarium/gritsbot_2
 sudo nano /etc/rc.local
 ```
 Note: Add the line "/home/pi/setup_service start" right before "exit 0" (last line).
+- Move Files named 'setup' and 'setup_service' (under gritsbot_2/setup/) to /home/pi/ (aka ~) 
 - Restart PI to install firmware
 ```
 sudo shutdown -r now

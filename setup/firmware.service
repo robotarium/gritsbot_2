@@ -1,0 +1,16 @@
+[Unit]
+Description=Service to manage firmware container for robot
+After=docker.service
+Requires=docker.service
+
+[Service]
+ExecStartPre=-/usr/bin/docker stop firmware
+ExecStartPre=-/usr/bin/docker rm firmware
+ExecStartPre=/bin/docker pull robotarium:firmware
+ExecStart=docker run -d --restart always --name firmware --net host --device $(python3 /home/pi/git/gritsbot_2/gritsbot/detect_serial.py):/dev/ttyACM0 robotarium/firmware
+ExecStop=-/bin/docker stop firmware
+ExecStop=/bin/docker rm -f firmware
+ExecReload=/bin/docker restart firmware
+
+[Install]
+WantedBy=multi-user.target

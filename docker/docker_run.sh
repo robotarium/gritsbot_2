@@ -4,5 +4,5 @@
 docker run -d --restart always \
 	--name firmware \
 	--net host \
-	--device $(python3 ../gritsbot/detect_serial.py):/dev/ttyACM0 \
+	--device $(sudo -u pi python3 ../gritsbot/detect_serial.py):/dev/ttyACM0 \
 	robotarium/firmware

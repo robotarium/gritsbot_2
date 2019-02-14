@@ -21,7 +21,7 @@ def main():
         print(repr(e))
         print('Could not open file ({})'.format(args.mac_list))
 
-    pid = subprocess.Popen(['arp-scan', '-I', interface, '-l'], stdout=subprocess.PIPE)
+    pid = subprocess.Popen(['arp-scan', '-I', interface, '-l', '-t', '1000', '-r', '5'], stdout=subprocess.PIPE)
     out = pid.communicate()[0].decode()
     lines = out.split('\n')
 

@@ -1,5 +1,5 @@
 [Unit]
-Description=service to manage firmware container
+Description=service to start watchtower container
 After=docker.service
 Requires=docker.service
 
@@ -7,12 +7,12 @@ Requires=docker.service
 Type=forking
 #Restart=always
 WorkingDirectory=/home/pi/git/gritsbot_2/docker/
-ExecStartPre=-/usr/bin/docker stop firmware
-ExecStartPre=-/usr/bin/docker rm firmware
-ExecStartPre=-/usr/bin/docker pull robotarium/firmware
+ExecStartPre=-/usr/bin/docker stop watchtower
+ExecStartPre=-/usr/bin/docker rm watchtower
+ExecStartPre=-/usr/bin/docker pull v2tec/watchtower:armhf-latest
 #ExecStartPre=/bin/bash -c "/bin/systemctl set-environment SERIAL_PORT=$(sudo -u pi python3 detect_serial.py)"
 #ExecStart=/usr/bin/docker run -d --restart always --name firmware --net host --device ${SERIAL_PORT}:/dev/ttyACM0 robotarium/firmware
-ExecStart=/bin/bash docker_run.sh
+ExecStart=/bin/bash docker_watch.sh
 #ExecStop=-/usr/bin/docker stop firmware
 #ExecStop=/usr/bin/docker rm -f firmware
 ExecReload=/usr/bin/docker restart firmware

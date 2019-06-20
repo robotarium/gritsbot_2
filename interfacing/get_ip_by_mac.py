@@ -3,6 +3,7 @@ import subprocess
 import re
 import json
 import getpass
+import numpy as np
 
 
 def main():
@@ -48,6 +49,7 @@ def main():
     id_to_ip = dict({mac_to_id[x]: y for x, y in mac_to_ip.items() if x in mac_to_id})
 
     print(id_to_ip)
+    print('Number of robots found: ', len(id_to_ip))
 
     if(args.c is None):
         return
